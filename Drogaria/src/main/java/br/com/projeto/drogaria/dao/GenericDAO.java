@@ -9,7 +9,6 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 
 import br.com.projeto.drogaria.util.HibernateUtil;
-
 /**
  * 
  * @author Silvan de Jesus
@@ -17,136 +16,112 @@ import br.com.projeto.drogaria.util.HibernateUtil;
  */
 
 public class GenericDAO<Entidade> {
-
 	private Class<Entidade> classe;
 
 	@SuppressWarnings("unchecked")
-	GenericDAO() {
-		this.classe = (Class<Entidade>) ((ParameterizedType) getClass()
-				.getGenericSuperclass()).getActualTypeArguments()[0];
+	public GenericDAO() {
+		this.classe = (Class<Entidade>) ((ParameterizedType) getClass().getGenericSuperclass())
+				.getActualTypeArguments()[0];
 	}
 
-	/**
-	 * 
-	 * @param e
-	 * Método  que salva um objeto no banco
-	 */
-	public void salvar(Entidade e) {
+	public void salvar(Entidade entidade) {
 		Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 		Transaction transacao = null;
 
 		try {
 			transacao = sessao.beginTransaction();
-			sessao.save(e);
+			sessao.save(entidade);
 			transacao.commit();
-
-		} catch (RuntimeException excessao) {
+		} catch (RuntimeException erro) {
 			if (transacao != null) {
 				transacao.rollback();
 			}
-			// Propaga o erro para as camadas superiores
-			throw excessao;
+			throw erro;
 		} finally {
 			sessao.close();
 		}
-
 	}
 
-	/**
-	 * Método que lista os objetos de uma entidade
-	 * 
-	 * @return
-	 */
+	@SuppressWarnings("unchecked")
 	public List<Entidade> listar() {
 		Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-		
 		try {
-			
 			Criteria consulta = sessao.createCriteria(classe);
-			@SuppressWarnings("unchecked")
 			List<Entidade> resultado = consulta.list();
 			return resultado;
-		} catch (RuntimeException excessao) {
-			throw excessao;
-		} finally{
+		} catch (RuntimeException erro) {
+			throw erro;
+		} finally {
 			sessao.close();
 		}
 	}
 	
-	/**
-	 * Método que lista os objetos de uma entidade
-	 * 
-	 * @return
-	 */
 	@SuppressWarnings("unchecked")
 	public Entidade buscar(Long codigo) {
 		Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-		
-		try {			
+		try {
 			Criteria consulta = sessao.createCriteria(classe);
 			consulta.add(Restrictions.idEq(codigo));
-			
-			Entidade resultado = (Entidade)consulta.uniqueResult();
-			
+			Entidade resultado = (Entidade) consulta.uniqueResult();
 			return resultado;
-		} catch (RuntimeException excessao) {
-			throw excessao;
-		} finally{
+		} catch (RuntimeException erro) {
+			throw erro;
+		} finally {
 			sessao.close();
 		}
 	}
 	
-	/**
-	 * 
-	 * @param e
-	 * Método  que exclui um objeto no banco
-	 */
-	public void excluir(Entidade e) {
+	public void excluir(Entidade entidade) {
 		Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 		Transaction transacao = null;
 
 		try {
 			transacao = sessao.beginTransaction();
-			sessao.delete(e);
+			sessao.delete(entidade);
 			transacao.commit();
-
-		} catch (RuntimeException excessao) {
+		} catch (RuntimeException erro) {
 			if (transacao != null) {
 				transacao.rollback();
 			}
-			// Propaga o erro para as camadas superiores
-			throw excessao;
+			throw erro;
 		} finally {
 			sessao.close();
 		}
-
 	}
 	
-	
-	/**
-	 * 
-	 * @param e
-	 * Método  que edita um objeto no banco
-	 */
-	public void editar(Entidade e) {
+	public void editar(Entidade entidade) {
 		Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 		Transaction transacao = null;
 
 		try {
 			transacao = sessao.beginTransaction();
-			sessao.update(e);
+			sessao.update(entidade);
 			transacao.commit();
-
-		} catch (RuntimeException excessao) {
+		} catch (RuntimeException erro) {
 			if (transacao != null) {
 				transacao.rollback();
 			}
-			// Propaga o erro para as camadas superiores
-			throw excessao;
+			throw erro;
 		} finally {
 			sessao.close();
 		}
-
 	}
+	
+	public void merge(Entidade entidade) {
+		Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
+		Transaction transacao = null;
 
+		try {
+			transacao = sessao.beginTransaction();
+			sessao.merge(entidade);
+			transacao.commit();
+		} catch (RuntimeException erro) {
+			if (transacao != null) {
+				transacao.rollback();
+			}
+			throw erro;
+		} finally {
+			sessao.close();
+		}
+	}
 }
