@@ -6,6 +6,7 @@ package br.com.projeto.drogaria.bean;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -15,7 +16,12 @@ import javax.faces.event.ActionEvent;
 
 import org.omnifaces.util.Messages;
 
+import br.com.projeto.drogaria.dao.ClienteDAO;
+import br.com.projeto.drogaria.dao.FuncionarioDAO;
 import br.com.projeto.drogaria.dao.ProdutoDAO;
+import br.com.projeto.drogaria.dao.VendaDAO;
+import br.com.projeto.drogaria.entidade.Cliente;
+import br.com.projeto.drogaria.entidade.Funcionario;
 import br.com.projeto.drogaria.entidade.ItemVenda;
 import br.com.projeto.drogaria.entidade.Produto;
 import br.com.projeto.drogaria.entidade.Venda;
@@ -31,7 +37,9 @@ import br.com.projeto.drogaria.entidade.Venda;
 public class VendaBean implements Serializable {
 	private List<Produto> produtos;
 	private List<ItemVenda> itensVenda;
-
+	private List<Cliente> clientes;
+	private List<Funcionario> funcionarios;
+	
 	private Venda venda;
 
 	public List<Produto> getProdutos() {
@@ -56,6 +64,22 @@ public class VendaBean implements Serializable {
 
 	public void setVenda(Venda venda) {
 		this.venda = venda;
+	}
+	
+	public List<Cliente> getClientes() {
+		return clientes;
+	}
+	
+	public void setClientes(List<Cliente> clientes) {
+		this.clientes = clientes;
+	}
+	
+	public List<Funcionario> getFuncionarios() {
+		return funcionarios;
+	}
+	
+	public void setFuncionarios(List<Funcionario> funcionarios) {
+		this.funcionarios = funcionarios;
 	}
 
 	@PostConstruct
@@ -134,6 +158,40 @@ public class VendaBean implements Serializable {
 			ItemVenda itemVenda = itensVenda.get(i);
 			venda.setPrecoTotal(venda.getPrecoTotal().add(
 					itemVenda.getPrecoParcial()));
+		}
+	}
+	
+	public void finalizar(){
+		try {
+			venda.setHorario(new Date());
+			FuncionarioDAO funcionarioDao = new FuncionarioDAO();
+			funcionarios = funcionarioDao.listarOrdenado();
+			
+			ClienteDAO clienteDao = new ClienteDAO();
+			clientes = clienteDao.listarOrdenado();
+			
+		} catch (RuntimeException e) {
+			Messages.addGlobalError("Ocorreu um erro ao tentar carregar os dados");
+			e.printStackTrace();
+		}
+	}
+	
+	public void salvar(){
+		try {
+			if(venda.getPrecoTotal().signum() == 0){
+				Messages.addGlobalError("Informe pelo menos um item para a venda");
+				return;
+			}
+			
+			VendaDAO vendaDAO = new VendaDAO();
+			vendaDAO.salvar(venda, itensVenda);
+			
+			novo();
+			
+			Messages.addGlobalInfo("Venda realizada com sucesso");
+		} catch (RuntimeException erro) {
+			Messages.addGlobalError("Ocorreu um erro ao tentar salvar a venda");
+			erro.printStackTrace();
 		}
 	}
 }
